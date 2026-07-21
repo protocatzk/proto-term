@@ -1,0 +1,50 @@
+---
+interface Props {
+  targetId: string;
+  placeholder?: string;
+}
+
+const {
+  targetId,
+  placeholder = "grep symbol|name…",
+} = Astro.props;
+---
+
+<div class="toolbar">
+  <span class="dim">$</span>
+  <label class="sr-only" for={`search-${targetId}`}>Filter</label>
+  <input
+    id={`search-${targetId}`}
+    class="search-input"
+    type="search"
+    placeholder={placeholder}
+    autocomplete="off"
+    data-filter-for={targetId}
+  />
+</div>
+
+<script>
+  function bindFilters() {
+    document.querySelectorAll<HTMLInputElement>("[data-filter-for]").forEach((input) => {
+      if (input.dataset.bound === "1") return;
+      input.dataset.bound = "1";
+
+      const tableId = input.dataset.filterFor;
+      if (!tableId) return;
+
+      input.addEventListener("input", () => {
+        const q = input.value.trim().toLowerCase();
+        const root = document.getElementById(tableId);
+        if (!root) return;
+
+        root.querySelectorAll<HTMLTableRowElement>("tbody tr").forEach((row) => {
+          const hay = row.dataset.search ?? row.textContent?.toLowerCase() ?? "";
+          row.hidden = q.length > 0 && !hay.includes(q);
+        });
+      });
+    });
+  }
+
+  bindFilters();
+  document.addEventListener("astro:page-load", bindFilters);
+</script>

@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AssetTable from "../../components/AssetTable.astro";
+import SearchFilter from "../../components/SearchFilter.astro";
+import { stockAssets } from "../../data/stocks";
+---
+
+<BaseLayout
+  title="Stocks"
+  windowTitle="prototerm — stocks"
+  description="Aktien-Markt im CLI-Style — Mock-Daten."
+>
+  <p class="cli-line">
+    <span class="dim">$</span> <span class="bright">stocks ls --sort mcap</span>
+  </p>
+  <p class="cli-line dim cli-block">
+    # {stockAssets.length} tickers · mock prices · type: stocks aapl
+  </p>
+
+  <SearchFilter targetId="stocks-table" placeholder="grep aapl|nvidia…" />
+  <AssetTable assets={stockAssets} id="stocks-table" showExchange />
+</BaseLayout>

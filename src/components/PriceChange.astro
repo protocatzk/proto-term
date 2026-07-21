@@ -1,0 +1,21 @@
+---
+import { formatChange, isPositive } from "../data/format";
+
+interface Props {
+  value: number;
+  variant?: "text" | "pill";
+}
+
+const { value, variant = "text" } = Astro.props;
+const up = isPositive(value);
+const cls =
+  variant === "pill"
+    ? up
+      ? "change-pill change-pill--up"
+      : "change-pill change-pill--down"
+    : up
+      ? "change change--up"
+      : "change change--down";
+---
+
+<span class={cls}>{formatChange(value)}</span>

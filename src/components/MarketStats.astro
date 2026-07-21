@@ -1,0 +1,27 @@
+---
+import type { MarketStat } from "../data/types";
+import PriceChange from "./PriceChange.astro";
+
+interface Props {
+  stats: MarketStat[];
+}
+
+const { stats } = Astro.props;
+---
+
+<div class="grid-stats">
+  {
+    stats.map((stat) => (
+      <div class="stat-box">
+        <span class="k">{stat.label}</span>
+        <span class="v">{stat.value}</span>
+        {typeof stat.change === "number" && (
+          <span class="s">
+            <PriceChange value={stat.change} variant="pill" />
+          </span>
+        )}
+        {stat.hint && !stat.change && <span class="s dim">{stat.hint}</span>}
+      </div>
+    ))
+  }
+</div>

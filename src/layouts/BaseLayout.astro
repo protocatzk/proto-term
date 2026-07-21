@@ -1,0 +1,54 @@
+---
+import TitleBar from "../components/TitleBar.astro";
+import TabBar from "../components/TabBar.astro";
+import CommandBar from "../components/CommandBar.astro";
+import StatusBar from "../components/StatusBar.astro";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Shown in the window title bar */
+  windowTitle?: string;
+}
+
+const {
+  title = "ProtoTerm",
+  description = "CLI-style crypto & stock portfolio prototype — static Astro shell.",
+  windowTitle = "prototerm — portfolio",
+} = Astro.props;
+
+const fullTitle = title === "ProtoTerm" ? title : `${title} · ProtoTerm`;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{fullTitle}</title>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="term">
+        <TitleBar title={windowTitle} />
+        <TabBar />
+        <main class="term-body">
+          <slot />
+        </main>
+        <CommandBar />
+        <StatusBar />
+      </div>
+    </div>
+  </body>
+</html>

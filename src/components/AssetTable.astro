@@ -1,0 +1,72 @@
+---
+import type { Asset } from "../data/types";
+import { formatPrice, formatCompact } from "../data/format";
+import PriceChange from "./PriceChange.astro";
+
+interface Props {
+  assets: Asset[];
+  id?: string;
+  showRank?: boolean;
+  showExchange?: boolean;
+}
+
+const { assets, id, showRank = false, showExchange = false } = Astro.props;
+---
+
+<div class="cli-table-wrap" id={id}>
+  <table class="cli-table">
+    <thead>
+      <tr>
+        {showRank && <th class="num">#</th>}
+        <th>symbol</th>
+        <th class="hide-sm">name</th>
+        <th class="num">price</th>
+        <th class="num">24h</th>
+        <th class="num hide-sm">mcap</th>
+        <th class="num hide-sm">vol</th>
+        {showExchange && <th class="hide-sm">exch</th>}
+      </tr>
+    </thead>
+    <tbody>
+      {
+        assets.map((asset, index) => {
+          const href =
+            asset.assetClass === "crypto"
+              ? `/crypto/${asset.symbol.toLowerCase()}`
+              : `/stocks/${asset.symbol.toLowerCase()}`;
+
+          return (
+            <tr data-search={`${asset.symbol} ${asset.name}`.toLowerCase()}>
+              {showRank && (
+                <td class="num dim">{asset.rank ?? index + 1}</td>
+              )}
+              <td>
+                <a class="row-link" href={href}>
+                  <span class="sym">{asset.symbol}</span>
+                </a>
+              </td>
+              <td class="hide-sm muted">{asset.name}</td>
+              <td class="num">{formatPrice(asset.price)}</td>
+              <td class="num">
+                <PriceChange value={asset.change24h} />
+              </td>
+              <td class="num hide-sm">{formatCompact(asset.marketCap)}</td>
+              <td class="num hide-sm">{formatCompact(asset.volume24h)}</td>
+              {showExchange && (
+                <td class="hide-sm dim">{asset.exchange ?? "—"}</td>
+              )}
+            </tr>
+          );
+        })
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  @media (max-width: 719px) {
+    .hide-sm {
+      display: none;
+    }
+  }
+</style>

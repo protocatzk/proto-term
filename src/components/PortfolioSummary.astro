@@ -1,0 +1,49 @@
+---
+import { formatMoney, formatChange, isPositive } from "../data/format";
+import PriceChange from "./PriceChange.astro";
+
+interface Props {
+  marketValue: number;
+  costValue: number;
+  pnl: number;
+  pnlPct: number;
+  dayPnl: number;
+  dayPnlPct: number;
+  positions: number;
+}
+
+const props = Astro.props;
+const pnlUp = isPositive(props.pnl);
+const dayUp = isPositive(props.dayPnl);
+---
+
+<div class="grid-stats cli-block">
+  <div class="stat-box">
+    <span class="k">nav</span>
+    <span class="v">{formatMoney(props.marketValue)}</span>
+    <span class="s dim">total market value</span>
+  </div>
+  <div class="stat-box">
+    <span class="k">cost basis</span>
+    <span class="v">{formatMoney(props.costValue)}</span>
+    <span class="s dim">{props.positions} positions</span>
+  </div>
+  <div class="stat-box">
+    <span class="k">unrealized pnl</span>
+    <span class:list={["v", pnlUp ? "change--up" : "change--down"]}>
+      {formatMoney(props.pnl, true)}
+    </span>
+    <span class:list={["s", pnlUp ? "change--up" : "change--down"]}>
+      {formatChange(props.pnlPct)}
+    </span>
+  </div>
+  <div class="stat-box">
+    <span class="k">day pnl (est.)</span>
+    <span class:list={["v", dayUp ? "change--up" : "change--down"]}>
+      {formatMoney(props.dayPnl, true)}
+    </span>
+    <span class="s">
+      <PriceChange value={props.dayPnlPct} variant="pill" />
+    </span>
+  </div>
+</div>

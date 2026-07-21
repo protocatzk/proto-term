@@ -1,0 +1,126 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MarketStats from "../../components/MarketStats.astro";
+import AssetTable from "../../components/AssetTable.astro";
+import { marketStats, getTopGainers, getTopLosers } from "../../data/market";
+import { cryptoAssets } from "../../data/crypto";
+import { stockAssets } from "../../data/stocks";
+import PriceChange from "../../components/PriceChange.astro";
+import { formatPrice } from "../../data/format";
+
+const gainers = getTopGainers(5);
+const losers = getTopLosers(5);
+const mixed = [...cryptoAssets.slice(0, 4), ...stockAssets.slice(0, 4)].sort(
+  (a, b) => b.marketCap - a.marketCap,
+);
+---
+
+<BaseLayout
+  title="Markets"
+  windowTitle="prototerm — markets"
+  description="Markt-Snapshot als CLI-View — Fallback neben dem Portfolio."
+>
+  <p class="cli-line">
+    <span class="dim">$</span> <span class="bright">markets --snapshot</span>
+  </p>
+  <p class="cli-line dim cli-block">
+    # fallback view · mock indices & top movers
+  </p>
+
+  <h2 class="section-label">snapshot</h2>
+  <div class="cli-block">
+    <MarketStats stats={marketStats} />
+  </div>
+
+  <div class="grid-2 cli-block">
+    <div class="panel">
+      <h2 class="panel-title">top gainers (24h)</h2>
+      <div class="mover-list">
+        {
+          gainers.map((a) => (
+            <a
+              class="mover"
+              href={
+                a.assetClass === "crypto"
+                  ? `/crypto/${a.symbol.toLowerCase()}`
+                  : `/stocks/${a.symbol.toLowerCase()}`
+              }
+            >
+              <span class="sym">{a.symbol}</span>
+              <span class="dim">{formatPrice(a.price)}</span>
+              <PriceChange value={a.change24h} />
+            </a>
+          ))
+        }
+      </div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">top losers (24h)</h2>
+      <div class="mover-list">
+        {
+          losers.map((a) => (
+            <a
+              class="mover"
+              href={
+                a.assetClass === "crypto"
+                  ? `/crypto/${a.symbol.toLowerCase()}`
+                  : `/stocks/${a.symbol.toLowerCase()}`
+              }
+            >
+              <span class="sym">{a.symbol}</span>
+              <span class="dim">{formatPrice(a.price)}</span>
+              <PriceChange value={a.change24h} />
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-label">watchlist sample</h2>
+  <p class="cli-line dim" style="margin-bottom: 0.65rem">
+    $ markets ls --limit 8
+  </p>
+  <AssetTable assets={mixed} id="markets-table" />
+
+  <p class="cli-line dim" style="margin-top: 1rem">
+    dig deeper: <a class="row-link" href="/crypto">crypto</a>
+    <span class="dim">·</span>
+    <a class="row-link" href="/stocks">stocks</a>
+  </p>
+</BaseLayout>
+
+<style>
+  .mover-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .mover {
+    display: grid;
+    grid-template-columns: 4rem 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.3rem 0.15rem;
+    font-size: 0.82rem;
+    border-radius: 2px;
+  }
+
+  .mover:hover {
+    background: var(--bg-hover);
+  }
+
+  .sym {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .row-link {
+    color: var(--cyan);
+  }
+
+  .row-link:hover {
+    text-decoration: underline;
+  }
+</style>

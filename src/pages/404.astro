@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="404"
+  windowTitle="prototerm — not found"
+  description="Route not found."
+>
+  <div class="empty">
+    <p class="cli-line" style="font-size: 1.25rem; color: var(--red)">
+      bash: path: No such file or directory
+    </p>
+    <p class="cli-line dim">exit code 127</p>
+    <p class="cli-line" style="margin-top: 1rem">
+      <a class="back-link" href="/" style="margin:0">$ cd ~</a>
+      <span class="dim"> or type </span>
+      <span class="prompt">portfolio</span>
+    </p>
+  </div>
+</BaseLayout>

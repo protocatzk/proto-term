@@ -1,0 +1,83 @@
+---
+import type { PieSlice } from "../data/types";
+import { formatMoney, formatWeight } from "../data/format";
+
+interface Props {
+  slices: PieSlice[];
+  title?: string;
+  /** Center label (e.g. total value) */
+  centerLabel?: string;
+  centerSub?: string;
+}
+
+const { slices, title = "allocation", centerLabel, centerSub } = Astro.props;
+---
+
+<div class="panel">
+  <h2 class="panel-title">{title}</h2>
+  {
+    slices.length === 0 ? (
+      <p class="dim">no data</p>
+    ) : (
+      <div class="alloc">
+        <div class="alloc-chart" role="img" aria-label={title}>
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            {slices.map((slice) => (
+              <path
+                d={slice.path}
+                fill={slice.color}
+                stroke="var(--bg-panel)"
+                stroke-width="0.6"
+              >
+                <title>
+                  {slice.label}: {formatWeight(slice.weight)} (
+                  {formatMoney(slice.value)})
+                </title>
+              </path>
+            ))}
+            {(centerLabel || centerSub) && (
+              <>
+                <text
+                  x="50"
+                  y={centerSub ? "47" : "51"}
+                  text-anchor="middle"
+                  fill="var(--text-bright)"
+                  font-size="5.5"
+                  font-family="var(--font-mono)"
+                  font-weight="600"
+                >
+                  {centerLabel}
+                </text>
+                {centerSub && (
+                  <text
+                    x="50"
+                    y="54"
+                    text-anchor="middle"
+                    fill="var(--text-dim)"
+                    font-size="3.8"
+                    font-family="var(--font-mono)"
+                  >
+                    {centerSub}
+                  </text>
+                )}
+              </>
+            )}
+          </svg>
+        </div>
+        <div class="alloc-legend">
+          {slices.map((slice) => (
+            <div class="legend-row">
+              <span
+                class="legend-swatch"
+                style={`background:${slice.color};color:${slice.color}`}
+              />
+              <span class="legend-label">{slice.label}</span>
+              <span class="legend-pct">{formatWeight(slice.weight)}</span>
+              <span class="legend-val">{formatMoney(slice.value)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+</div>

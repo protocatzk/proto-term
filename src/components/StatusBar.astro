@@ -1,0 +1,50 @@
+---
+import { portfolioMeta } from "../data/portfolio";
+
+const mode = import.meta.env.DEV ? "dev" : "static";
+---
+
+<footer class="statusbar">
+  <span class="seg">
+    <span class="on">●</span> feed:mock
+  </span>
+  <span class="seg dim">mode:{mode}</span>
+  <span class="seg dim hide-xs">asof:{portfolioMeta.asOf.slice(0, 10)}</span>
+  <span class="seg dim grow"></span>
+  <span class="seg">ccy:{portfolioMeta.currency}</span>
+  <span class="seg dim">prototerm v0.1</span>
+</footer>
+
+<style>
+  .statusbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.85rem;
+    padding: 0.3rem 0.75rem;
+    background: var(--chrome);
+    border-top: 1px solid var(--border);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    position: relative;
+    z-index: 2;
+  }
+
+  .seg {
+    white-space: nowrap;
+  }
+
+  .grow {
+    flex: 1;
+  }
+
+  .on {
+    color: var(--green);
+    margin-right: 0.15rem;
+  }
+
+  @media (max-width: 520px) {
+    .hide-xs {
+      display: none;
+    }
+  }
+</style>

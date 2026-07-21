@@ -1,43 +1,68 @@
-# Astro Starter Kit: Minimal
+# ProtoTerm
 
-```sh
-yarn create astro@latest -- --template minimal
-```
+**CLI-style Portfolio App** für Crypto & Aktien — gebaut mit [Astro](https://astro.build) als möglichst statische Site.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Terminal-UI mit echten grafischen Charts (SVG-Donuts für Asset Allocation), Tabs oben als Fallback für Markt-Views, und einer Command-Bar unten.
 
-## 🚀 Project Structure
+## Features
 
-Inside of your Astro project, you'll see the following folders and files:
+- **Portfolio Dashboard** (`/`) — NAV, PnL, Holdings-Tabelle, Allocation by class/symbol
+- **Markets** (`/markets`) — Snapshot, Top Movers
+- **Crypto / Stocks** — Listen + Detailseiten (Fallback-Tabs)
+- **Command bar** — `help`, `portfolio`, `crypto btc`, `stocks aapl`, `goto /…`
+- **Static SVG pie charts** — kein Chart-Framework nötig
+- Mock-Daten unter `src/data/`
+
+## Stack
+
+- Astro 7 (SSG / zero-JS by default)
+- Monospace CLI theme (JetBrains Mono)
+- Vanilla JS nur für Suche + Command bar
+- Optional später: Svelte/React Islands für interaktive Charts
+
+## Structure
 
 ```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+src/
+├── components/   Terminal chrome, charts, tables, command bar
+├── data/         Portfolio, crypto, stocks, pie geometry, formatters
+├── layouts/      BaseLayout (term shell)
+├── pages/        portfolio, markets, crypto, stocks
+└── styles/       global.css (CLI theme)
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Commands
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+| Command        | Action                         |
+| :------------- | :----------------------------- |
+| `yarn install` | Dependencies                   |
+| `yarn dev`     | Dev server (`localhost:4321`)  |
+| `yarn build`   | Static build → `./dist/`       |
+| `yarn preview` | Preview production build       |
 
-Any static assets, like images, can be placed in the `public/` directory.
+```sh
+# background dev (project convention)
+astro dev --background
+```
 
-## 🧞 Commands
+## In-app CLI
 
-All commands are run from the root of the project, from a terminal:
+Focus with `/`, then e.g.:
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `yarn install`             | Installs dependencies                            |
-| `yarn dev`             | Starts local dev server at `localhost:4321`      |
-| `yarn build`           | Build your production site to `./dist/`          |
-| `yarn preview`         | Preview your build locally, before deploying     |
-| `yarn astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `yarn astro -- --help` | Get help using the Astro CLI                     |
+```text
+help
+portfolio
+markets
+crypto btc
+stocks aapl
+goto /markets
+ls
+```
 
-## 👀 Want to learn more?
+## Next steps
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+1. Broker/CSV import → Holdings füllen
+2. Build-time price refresh (CoinGecko, etc.)
+3. Performance-Chart Island (Sparkline / equity curve)
+4. Watchlist + `localStorage` Island
+5. Multi-portfolio / accounts

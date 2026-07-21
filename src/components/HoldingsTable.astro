@@ -1,0 +1,110 @@
+---
+import type { HoldingComputed } from "../data/types";
+import {
+  formatMoney,
+  formatPrice,
+  formatQty,
+  formatWeight,
+  formatChange,
+  isPositive,
+} from "../data/format";
+import PriceChange from "./PriceChange.astro";
+
+interface Props {
+  holdings: HoldingComputed[];
+}
+
+const { holdings } = Astro.props;
+
+function hrefFor(h: HoldingComputed): string | null {
+  if (h.assetClass === "crypto") return `/crypto/${h.symbol.toLowerCase()}`;
+  if (h.assetClass === "stock") return `/stocks/${h.symbol.toLowerCase()}`;
+  return null;
+}
+
+function classTag(assetClass: string): string {
+  if (assetClass === "crypto") return "tag tag--crypto";
+  if (assetClass === "stock") return "tag tag--stock";
+  return "tag tag--cash";
+}
+---
+
+<div class="cli-table-wrap">
+  <table class="cli-table">
+    <thead>
+      <tr>
+        <th>symbol</th>
+        <th class="hide-sm">class</th>
+        <th class="num">qty</th>
+        <th class="num">price</th>
+        <th class="num">value</th>
+        <th class="num">pnl</th>
+        <th class="num hide-sm">pnl%</th>
+        <th class="num">wgt</th>
+        <th class="num hide-md">24h</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        holdings.map((h) => {
+          const href = hrefFor(h);
+          const pnlUp = isPositive(h.pnl);
+          return (
+            <tr>
+              <td>
+                {href ? (
+                  <a class="row-link" href={href}>
+                    <span class="sym">{h.symbol}</span>
+                  </a>
+                ) : (
+                  <span class="sym">{h.symbol}</span>
+                )}
+                <span class="name-sub hide-sm dim"> {h.name}</span>
+              </td>
+              <td class="hide-sm">
+                <span class={classTag(h.assetClass)}>{h.assetClass}</span>
+              </td>
+              <td class="num">{formatQty(h.quantity)}</td>
+              <td class="num">{formatPrice(h.price)}</td>
+              <td class="num bright">{formatMoney(h.marketValue)}</td>
+              <td class:list={["num", pnlUp ? "change--up" : "change--down"]}>
+                {formatMoney(h.pnl, true)}
+              </td>
+              <td
+                class:list={[
+                  "num",
+                  "hide-sm",
+                  pnlUp ? "change--up" : "change--down",
+                ]}
+              >
+                {formatChange(h.pnlPct)}
+              </td>
+              <td class="num muted">{formatWeight(h.weight)}</td>
+              <td class="num hide-md">
+                <PriceChange value={h.change24h} />
+              </td>
+            </tr>
+          );
+        })
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .name-sub {
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 719px) {
+    .hide-sm {
+      display: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .hide-md {
+      display: none;
+    }
+  }
+</style>

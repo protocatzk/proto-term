@@ -1,0 +1,75 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PriceChange from "../../components/PriceChange.astro";
+import { stockAssets } from "../../data/stocks";
+import { formatPrice, formatCompact } from "../../data/format";
+import type { GetStaticPaths } from "astro";
+
+export const getStaticPaths = (() => {
+  return stockAssets.map((asset) => ({
+    params: { symbol: asset.symbol.toLowerCase() },
+    props: { asset },
+  }));
+}) satisfies GetStaticPaths;
+
+const { asset } = Astro.props;
+---
+
+<BaseLayout
+  title={`${asset.symbol} · Stock`}
+  windowTitle={`prototerm — stocks/${asset.symbol.toLowerCase()}`}
+  description={`${asset.name} — statischer CLI-Detailview.`}
+>
+  <a class="back-link" href="/stocks">← stocks ls</a>
+
+  <p class="cli-line">
+    <span class="dim">$</span>{" "}
+    <span class="bright">stocks show {asset.symbol.toLowerCase()}</span>
+  </p>
+
+  <div class="detail-head">
+    <div>
+      <p class="cli-line bright" style="font-size: 1.15rem; margin-bottom: 0.25rem">
+        {asset.name} <span class="tag tag--stock">stock</span>
+      </p>
+      <p class="cli-line dim">
+        {asset.symbol}{asset.exchange ? ` · ${asset.exchange}` : ""}
+      </p>
+    </div>
+    <div style="text-align: right">
+      <div class="detail-price">{formatPrice(asset.price)}</div>
+      <PriceChange value={asset.change24h} variant="pill" />
+    </div>
+  </div>
+
+  <div class="grid-stats cli-block">
+    <div class="stat-box">
+      <span class="k">market cap</span>
+      <span class="v">{formatCompact(asset.marketCap)}</span>
+    </div>
+    <div class="stat-box">
+      <span class="k">volume 24h</span>
+      <span class="v">{formatCompact(asset.volume24h)}</span>
+    </div>
+    <div class="stat-box">
+      <span class="k">price</span>
+      <span class="v">{formatPrice(asset.price)}</span>
+    </div>
+    <div class="stat-box">
+      <span class="k">exchange</span>
+      <span class="v">{asset.exchange ?? "—"}</span>
+    </div>
+  </div>
+
+  {
+    asset.description && (
+      <div class="panel">
+        <h2 class="panel-title">about</h2>
+        <p class="about-text">{asset.description}</p>
+        <p class="cli-line dim" style="margin-top: 0.85rem; margin-bottom: 0">
+          # mock data · not investment advice
+        </p>
+      </div>
+    )
+  }
+</BaseLayout>

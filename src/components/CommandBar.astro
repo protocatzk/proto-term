@@ -1,0 +1,182 @@
+---
+/**
+ * CLI-style command input (vanilla JS island).
+ * Commands: help, ls, portfolio, markets, crypto [sym], stocks [sym], clear, goto <path>
+ */
+---
+
+<div class="cmdbar">
+  <form class="cmd-form" id="cli-form" autocomplete="off">
+    <label class="cmd-prompt" for="cli-input">
+      <span class="prompt-host">demo</span><span class="dim">@</span><span class="prompt">prototerm</span>
+      <span class="dim">:</span><span class="prompt-path">~</span><span class="dim">$</span>
+    </label>
+    <input
+      id="cli-input"
+      class="cmd-input"
+      name="cmd"
+      type="text"
+      spellcheck="false"
+      placeholder="help"
+      aria-label="Terminal command"
+    />
+  </form>
+  <div class="cmd-out dim" id="cli-out" aria-live="polite"></div>
+</div>
+
+<style>
+  .cmdbar {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    padding: 0.45rem 0.75rem 0.55rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cmd-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .cmd-prompt {
+    flex-shrink: 0;
+    font-size: 0.82rem;
+    user-select: none;
+  }
+
+  .cmd-input {
+    flex: 1;
+    min-width: 120px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-bright);
+    caret-color: var(--green);
+    padding: 0.15rem 0;
+  }
+
+  .cmd-input::placeholder {
+    color: var(--text-dim);
+  }
+
+  .cmd-out {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    min-height: 1em;
+    white-space: pre-wrap;
+  }
+</style>
+
+<script>
+  const ROUTES: Record<string, string> = {
+    portfolio: "/",
+    home: "/",
+    markets: "/markets",
+    market: "/markets",
+    crypto: "/crypto",
+    stocks: "/stocks",
+    stock: "/stocks",
+    equities: "/stocks",
+  };
+
+  const HELP = `commands:
+  help                 diese Hilfe
+  ls | tabs            verfügbare Views
+  portfolio            Portfolio-Dashboard
+  markets              Markt-Snapshot
+  crypto [symbol]      Crypto-Liste oder Detail (z.B. crypto btc)
+  stocks [symbol]      Aktien-Liste oder Detail (z.B. stocks aapl)
+  goto <path>          absolute Route (z.B. goto /crypto/eth)
+  clear                Output leeren`;
+
+  function setOut(msg: string) {
+    const el = document.getElementById("cli-out");
+    if (el) el.textContent = msg;
+  }
+
+  function navigate(path: string) {
+    window.location.href = path;
+  }
+
+  function run(raw: string) {
+    const line = raw.trim();
+    if (!line) return;
+
+    const parts = line.split(/\s+/);
+    const cmd = parts[0].toLowerCase();
+    const arg = parts[1]?.toLowerCase();
+
+    switch (cmd) {
+      case "help":
+      case "?":
+      case "man":
+        setOut(HELP);
+        return;
+      case "clear":
+      case "cls":
+        setOut("");
+        return;
+      case "ls":
+      case "tabs":
+      case "views":
+        setOut("portfolio  markets  crypto  stocks");
+        return;
+      case "goto":
+      case "cd":
+      case "open": {
+        if (!arg) {
+          setOut("usage: goto <path>");
+          return;
+        }
+        const path = arg.startsWith("/") ? arg : `/${arg}`;
+        navigate(path);
+        return;
+      }
+      case "crypto": {
+        if (arg) navigate(`/crypto/${arg}`);
+        else navigate("/crypto");
+        return;
+      }
+      case "stocks":
+      case "stock": {
+        if (arg) navigate(`/stocks/${arg}`);
+        else navigate("/stocks");
+        return;
+      }
+      default: {
+        if (ROUTES[cmd]) {
+          navigate(ROUTES[cmd]);
+          return;
+        }
+        setOut(`command not found: ${cmd}  (type 'help')`);
+      }
+    }
+  }
+
+  function bind() {
+    const form = document.getElementById("cli-form") as HTMLFormElement | null;
+    const input = document.getElementById("cli-input") as HTMLInputElement | null;
+    if (!form || !input || form.dataset.bound === "1") return;
+    form.dataset.bound = "1";
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const value = input.value;
+      run(value);
+      input.value = "";
+    });
+
+    // Focus with `/` when not in another field
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "/" && document.activeElement?.tagName !== "INPUT") {
+        e.preventDefault();
+        input.focus();
+      }
+    });
+  }
+
+  bind();
+  document.addEventListener("astro:page-load", bind);
+</script>

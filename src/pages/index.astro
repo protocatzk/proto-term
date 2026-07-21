@@ -1,17 +1,71 @@
 ---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PortfolioSummary from "../components/PortfolioSummary.astro";
+import HoldingsTable from "../components/HoldingsTable.astro";
+import AllocationChart from "../components/AllocationChart.astro";
+import {
+  computeHoldings,
+  getPortfolioTotals,
+  getAllocationPies,
+  portfolioMeta,
+} from "../data/portfolio";
+import { formatCompact } from "../data/format";
 
+const holdings = computeHoldings();
+const totals = getPortfolioTotals(holdings);
+const { byClass, bySymbol } = getAllocationPies(holdings);
+const navCompact = formatCompact(totals.marketValue);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout
+  title="Portfolio"
+  windowTitle="prototerm — portfolio"
+  description="CLI-style Portfolio Dashboard mit Holdings und Asset Allocation."
+>
+  <p class="cli-line">
+    <span class="prompt-host">{portfolioMeta.account.split("@")[0]}</span><span
+      class="dim">@</span
+    ><span class="prompt">{portfolioMeta.host}</span>
+    <span class="dim">:</span><span class="prompt-path">~/{portfolioMeta.label}</span
+    ><span class="dim">$ </span><span class="bright">portfolio --summary</span>
+  </p>
+  <p class="cli-line dim cli-block">
+    # mock positions · static build · no live broker feed
+  </p>
+
+  <PortfolioSummary
+    marketValue={totals.marketValue}
+    costValue={totals.costValue}
+    pnl={totals.pnl}
+    pnlPct={totals.pnlPct}
+    dayPnl={totals.dayPnl}
+    dayPnlPct={totals.dayPnlPct}
+    positions={holdings.length}
+  />
+
+  <div class="grid-2 cli-block">
+    <AllocationChart
+      slices={byClass}
+      title="allocation by class"
+      centerLabel={navCompact}
+      centerSub="NAV"
+    />
+    <AllocationChart
+      slices={bySymbol}
+      title="allocation by symbol"
+      centerLabel={`${holdings.length}`}
+      centerSub="pos"
+    />
+  </div>
+
+  <h2 class="section-label">holdings</h2>
+  <p class="cli-line dim" style="margin-bottom: 0.65rem">
+    $ portfolio ls --sort value
+  </p>
+  <HoldingsTable holdings={holdings} />
+
+  <p class="cli-line dim" style="margin-top: 1.25rem">
+    tip: type <span class="prompt">help</span> in the prompt below · press{" "}
+    <span class="bright">/</span> to focus
+  </p>
+</BaseLayout>
