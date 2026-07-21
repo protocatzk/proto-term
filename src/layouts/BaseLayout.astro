@@ -43,10 +43,10 @@ const fullTitle = title === "ProtoTerm" ? title : `${title} · ProtoTerm`;
       <div class="term">
         <TitleBar title={windowTitle} />
         <TabBar />
+        <CommandBar />
         <main class="term-body">
           <slot />
         </main>
-        <CommandBar />
         <StatusBar />
       </div>
     </div>

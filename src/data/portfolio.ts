@@ -122,23 +122,23 @@ export function getPortfolioTotals(holdings = computeHoldings()) {
   return { marketValue, costValue, pnl, pnlPct, dayPnl, dayPnlPct };
 }
 
-/** Colors for CLI-style charts — phosphor palette */
+/** Colors for CLI-style charts — red / blue spectrum */
 export const CHART_COLORS = {
-  crypto: "#33ff66",
-  stock: "#5cc8ff",
-  cash: "#ffb000",
+  crypto: "#ff4d6d",
+  stock: "#4d8dff",
+  cash: "#7ab4ff",
   // per-symbol accents (cycle)
   palette: [
-    "#33ff66",
-    "#5cc8ff",
-    "#ffb000",
-    "#c084fc",
-    "#f472b6",
-    "#34d399",
-    "#fbbf24",
-    "#60a5fa",
-    "#a3e635",
-    "#fb7185",
+    "#ff4d6d",
+    "#4d8dff",
+    "#ff6b8a",
+    "#6ea0ff",
+    "#c44d6a",
+    "#3d7aef",
+    "#ff8a9a",
+    "#8bb4ff",
+    "#e23d5c",
+    "#5b9dff",
   ],
 };
 

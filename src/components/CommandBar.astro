@@ -26,9 +26,14 @@
 
 <style>
   .cmdbar {
-    border-top: 1px solid var(--border);
-    background: var(--bg);
-    padding: 0.45rem 0.75rem 0.55rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(
+      90deg,
+      rgba(255, 77, 109, 0.06) 0%,
+      var(--bg) 40%,
+      rgba(77, 141, 255, 0.07) 100%
+    );
+    padding: 0.5rem 0.75rem 0.55rem;
     position: relative;
     z-index: 2;
   }
@@ -53,7 +58,7 @@
     border: none;
     outline: none;
     color: var(--text-bright);
-    caret-color: var(--green);
+    caret-color: var(--blue);
     padding: 0.15rem 0;
   }
 
