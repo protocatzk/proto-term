@@ -1,27 +1,39 @@
 ---
+/**
+ * Program launcher tabs — run CLI programs without full page reload.
+ * data-cmd is picked up by Terminal (prototerm:run event).
+ */
 const pathname = Astro.url.pathname;
 
 const tabs = [
-  { href: "/", label: "portfolio", match: (p: string) => p === "/" },
+  {
+    href: "/",
+    label: "portfolio",
+    cmd: "portfolio",
+    match: (p: string) => p === "/",
+  },
   {
     href: "/markets",
     label: "markets",
-    match: (p: string) => p === "/markets" || p.startsWith("/markets/"),
+    cmd: "markets",
+    match: (p: string) => p.startsWith("/markets"),
   },
   {
     href: "/crypto",
     label: "crypto",
-    match: (p: string) => p === "/crypto" || p.startsWith("/crypto/"),
+    cmd: "crypto ls",
+    match: (p: string) => p.startsWith("/crypto"),
   },
   {
     href: "/stocks",
     label: "stocks",
-    match: (p: string) => p === "/stocks" || p.startsWith("/stocks/"),
+    cmd: "stocks ls",
+    match: (p: string) => p.startsWith("/stocks"),
   },
 ];
 ---
 
-<nav class="tabbar" aria-label="Views">
+<nav class="tabbar" aria-label="Programs" id="tabbar">
   <div class="tabs">
     {
       tabs.map((tab) => {
@@ -30,6 +42,7 @@ const tabs = [
           <a
             href={tab.href}
             class:list={["tab", { "is-active": active }]}
+            data-cmd={tab.cmd}
             aria-current={active ? "page" : undefined}
           >
             <span class="tab-bracket">[</span>
@@ -40,8 +53,8 @@ const tabs = [
       })
     }
   </div>
-  <div class="tab-hint dim" title="Tipp: Command unter den Tabs eingeben">
-    help | ls | goto …
+  <div class="tab-hint dim" title="CLI programs">
+    bin: portfolio markets crypto stocks
   </div>
 </nav>
 
@@ -57,6 +70,7 @@ const tabs = [
     position: relative;
     z-index: 2;
     overflow-x: auto;
+    flex-shrink: 0;
   }
 
   .tabs {
@@ -72,6 +86,7 @@ const tabs = [
     border-bottom: 2px solid transparent;
     white-space: nowrap;
     transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+    cursor: pointer;
   }
 
   .tab:hover {
@@ -110,3 +125,35 @@ const tabs = [
     }
   }
 </style>
+
+<script>
+  function bindTabs() {
+    const bar = document.getElementById("tabbar");
+    if (!bar || bar.dataset.bound === "1") return;
+    bar.dataset.bound = "1";
+
+    bar.querySelectorAll<HTMLAnchorElement>("a[data-cmd]").forEach((link) => {
+      link.addEventListener("click", (e) => {
+        // Same-origin SPA-ish: if terminal is on the page, run program in-place
+        const terminal = document.getElementById("terminal");
+        const cmd = link.dataset.cmd;
+        if (terminal && cmd) {
+          e.preventDefault();
+          bar.querySelectorAll(".tab").forEach((t) => t.classList.remove("is-active"));
+          link.classList.add("is-active");
+          window.dispatchEvent(
+            new CustomEvent("prototerm:run", { detail: cmd }),
+          );
+          // Keep URL shareable without full reload when possible
+          const href = link.getAttribute("href");
+          if (href && window.location.pathname !== href) {
+            history.pushState({ cmd }, "", href);
+          }
+        }
+      });
+    });
+  }
+
+  bindTabs();
+  document.addEventListener("astro:page-load", bindTabs);
+</script>

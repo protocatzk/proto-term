@@ -105,6 +105,7 @@ input {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 1.5rem);
+  max-height: calc(100vh - 1.5rem);
   border: 1px solid var(--border-bright);
   border-radius: 6px;
   background: var(--bg-panel);
@@ -134,13 +135,7 @@ input {
   opacity: 0.55;
 }
 
-.term-body {
-  flex: 1;
-  padding: 1rem 1.1rem 1.25rem;
-  overflow-x: auto;
-  position: relative;
-  z-index: 1;
-}
+/* Main content area is the Terminal component (scroll + prompt) */
 
 /* Typography helpers */
 .prompt {

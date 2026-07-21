@@ -1,21 +1,19 @@
 ---
 import TitleBar from "../components/TitleBar.astro";
 import TabBar from "../components/TabBar.astro";
-import CommandBar from "../components/CommandBar.astro";
 import StatusBar from "../components/StatusBar.astro";
 import "../styles/global.css";
 
 interface Props {
   title?: string;
   description?: string;
-  /** Shown in the window title bar */
   windowTitle?: string;
 }
 
 const {
   title = "ProtoTerm",
-  description = "CLI-style crypto & stock portfolio prototype — static Astro shell.",
-  windowTitle = "prototerm — portfolio",
+  description = "Full CLI portfolio shell — programs output market & portfolio data.",
+  windowTitle = "prototerm — shell",
 } = Astro.props;
 
 const fullTitle = title === "ProtoTerm" ? title : `${title} · ProtoTerm`;
@@ -43,10 +41,7 @@ const fullTitle = title === "ProtoTerm" ? title : `${title} · ProtoTerm`;
       <div class="term">
         <TitleBar title={windowTitle} />
         <TabBar />
-        <CommandBar />
-        <main class="term-body">
-          <slot />
-        </main>
+        <slot />
         <StatusBar />
       </div>
     </div>

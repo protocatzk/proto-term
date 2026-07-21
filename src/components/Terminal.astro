@@ -1,0 +1,341 @@
+---
+/**
+ * Full CLI session: scrollback + prompt.
+ * Programs live in src/cli/ — output is plain monospace text.
+ */
+import { bootSession } from "../cli/shell";
+import type { OutputBlock } from "../cli/types";
+
+interface Props {
+  /** Command executed on first paint, e.g. "portfolio" */
+  initialCommand?: string;
+  /** Auto-focus the prompt */
+  autofocus?: boolean;
+}
+
+const { initialCommand = "portfolio", autofocus = true } = Astro.props;
+const boot = bootSession(initialCommand);
+
+function toneClass(tone?: OutputBlock["tone"]): string {
+  if (tone === "dim") return "out-dim";
+  if (tone === "error") return "out-err";
+  if (tone === "ok") return "out-ok";
+  if (tone === "cmd") return "out-cmd";
+  return "";
+}
+---
+
+<div
+  class="terminal"
+  id="terminal"
+  data-initial={initialCommand}
+  data-autofocus={autofocus ? "1" : "0"}
+>
+  <div class="term-scroll" id="term-scroll" tabindex="-1" aria-live="polite">
+    <div class="term-output" id="term-output">
+      {
+        boot.blocks.map((block) => {
+          if (block.kind === "html") {
+            return <div class="out-html" set:html={block.html} />;
+          }
+          return (
+            <pre class:list={["out-pre", toneClass(block.tone)]}>{block.text}</pre>
+          );
+        })
+      }
+    </div>
+  </div>
+
+  <form class="cmdbar" id="cli-form" autocomplete="off">
+    <label class="cmd-prompt" for="cli-input">
+      <span class="prompt-host">demo</span><span class="dim">@</span><span
+        class="prompt">prototerm</span
+      >
+      <span class="dim">:</span><span class="prompt-path">~</span><span class="dim"
+        >$</span
+      >
+    </label>
+    <input
+      id="cli-input"
+      class="cmd-input"
+      name="cmd"
+      type="text"
+      spellcheck="false"
+      placeholder="help · portfolio · crypto btc · stocks aapl"
+      aria-label="Terminal command"
+    />
+  </form>
+</div>
+
+<style>
+  .terminal {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .term-scroll {
+    flex: 1;
+    overflow: auto;
+    padding: 0.85rem 1.1rem 0.5rem;
+    min-height: 12rem;
+  }
+
+  .term-output {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .out-pre {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text);
+  }
+
+  .out-dim {
+    color: var(--text-dim);
+  }
+
+  .out-err {
+    color: var(--red);
+  }
+
+  .out-ok {
+    color: var(--blue);
+  }
+
+  .out-cmd {
+    color: var(--text-bright);
+    margin-top: 0.65rem;
+  }
+
+  .out-cmd::before {
+    content: "";
+  }
+
+  .out-html {
+    margin: 0.35rem 0;
+  }
+
+  .cmdbar {
+    flex-shrink: 0;
+    border-top: 1px solid var(--border);
+    background: linear-gradient(
+      90deg,
+      rgba(255, 77, 109, 0.06) 0%,
+      var(--bg) 40%,
+      rgba(77, 141, 255, 0.07) 100%
+    );
+    padding: 0.55rem 0.85rem 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cmd-prompt {
+    flex-shrink: 0;
+    font-size: 0.82rem;
+    user-select: none;
+  }
+
+  .cmd-input {
+    flex: 1;
+    min-width: 140px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-bright);
+    caret-color: var(--blue);
+    padding: 0.15rem 0;
+  }
+
+  .cmd-input::placeholder {
+    color: var(--text-dim);
+  }
+</style>
+
+<script>
+  import { execute } from "../cli/shell";
+  import type { OutputBlock, ProgramResult } from "../cli/types";
+
+  const HISTORY_KEY = "prototerm-history";
+  const MAX_HISTORY = 80;
+
+  function toneClass(tone?: OutputBlock["tone"]): string {
+    if (tone === "dim") return "out-dim";
+    if (tone === "error") return "out-err";
+    if (tone === "ok") return "out-ok";
+    if (tone === "cmd") return "out-cmd";
+    return "";
+  }
+
+  function appendBlocks(output: HTMLElement, blocks: OutputBlock[]) {
+    for (const block of blocks) {
+      if (block.kind === "html") {
+        const el = document.createElement("div");
+        el.className = "out-html";
+        el.innerHTML = block.html;
+        output.appendChild(el);
+      } else {
+        const el = document.createElement("pre");
+        el.className = `out-pre ${toneClass(block.tone)}`.trim();
+        el.textContent = block.text;
+        output.appendChild(el);
+      }
+    }
+  }
+
+  function appendCommand(output: HTMLElement, line: string) {
+    const el = document.createElement("pre");
+    el.className = "out-pre out-cmd";
+    el.textContent = `$ ${line}`;
+    output.appendChild(el);
+  }
+
+  function scrollToBottom(scroll: HTMLElement) {
+    scroll.scrollTop = scroll.scrollHeight;
+  }
+
+  function loadHistory(): string[] {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter((x) => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveHistory(history: string[]) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-MAX_HISTORY)));
+    } catch {
+      /* ignore quota */
+    }
+  }
+
+  function applyResult(output: HTMLElement, result: ProgramResult) {
+    if (result.clear) {
+      output.replaceChildren();
+    }
+    appendBlocks(output, result.blocks);
+  }
+
+  function runLine(
+    line: string,
+    output: HTMLElement,
+    scroll: HTMLElement,
+    opts: { echo?: boolean } = {},
+  ) {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    if (opts.echo !== false) {
+      appendCommand(output, trimmed);
+    }
+
+    const result = execute(trimmed);
+    applyResult(output, result);
+    scrollToBottom(scroll);
+  }
+
+  function bindTerminal(root: HTMLElement) {
+    if (root.dataset.bound === "1") return;
+    root.dataset.bound = "1";
+
+    const form = root.querySelector<HTMLFormElement>("#cli-form");
+    const input = root.querySelector<HTMLInputElement>("#cli-input");
+    const output = root.querySelector<HTMLElement>("#term-output");
+    const scroll = root.querySelector<HTMLElement>("#term-scroll");
+    if (!form || !input || !output || !scroll) return;
+
+    let history = loadHistory();
+    let histIndex = history.length;
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const value = input.value;
+      const trimmed = value.trim();
+      if (trimmed) {
+        if (history[history.length - 1] !== trimmed) {
+          history.push(trimmed);
+          saveHistory(history);
+        }
+        histIndex = history.length;
+        runLine(trimmed, output, scroll);
+      }
+      input.value = "";
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (histIndex > 0) {
+          histIndex -= 1;
+          input.value = history[histIndex] ?? "";
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (histIndex < history.length) {
+          histIndex += 1;
+          input.value = history[histIndex] ?? "";
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
+      } else if (e.key === "l" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        runLine("clear", output, scroll, { echo: false });
+      }
+    });
+
+    // Tab bar / external runners
+    window.addEventListener("prototerm:run", ((e: CustomEvent<string>) => {
+      const cmd = e.detail?.trim();
+      if (!cmd) return;
+      input.value = "";
+      if (history[history.length - 1] !== cmd) {
+        history.push(cmd);
+        saveHistory(history);
+      }
+      histIndex = history.length;
+      runLine(cmd, output, scroll);
+      input.focus();
+    }) as EventListener);
+
+    // Focus shortcuts
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "/" && document.activeElement?.tagName !== "INPUT") {
+        e.preventDefault();
+        input.focus();
+      }
+    });
+
+    // Click scroll area to focus
+    scroll.addEventListener("click", () => input.focus());
+
+    if (root.dataset.autofocus === "1") {
+      // Delay so layout is ready
+      requestAnimationFrame(() => input.focus());
+    }
+  }
+
+  function init() {
+    const root = document.getElementById("terminal");
+    if (root) bindTerminal(root);
+  }
+
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

@@ -1,68 +1,60 @@
 # ProtoTerm
 
-**CLI-style Portfolio App** für Crypto & Aktien — gebaut mit [Astro](https://astro.build) als möglichst statische Site.
+**Vollständiges CLI** für Crypto- & Aktien-Portfolio — gebaut mit [Astro](https://astro.build).
 
-Terminal-UI mit echten grafischen Charts (SVG-Donuts für Asset Allocation), Tabs oben als Fallback für Markt-Views, und einer Command-Bar unten.
+Kein klassisches Dashboard: Du startest **Programme**, die Daten im Terminal-Stil ausgeben (Tabellen, Key/Value, ASCII-Allocation-Bars).
 
-## Features
+## Programme
 
-- **Portfolio Dashboard** (`/`) — NAV, PnL, Holdings-Tabelle, Allocation by class/symbol
-- **Markets** (`/markets`) — Snapshot, Top Movers
-- **Crypto / Stocks** — Listen + Detailseiten (Fallback-Tabs)
-- **Command bar** — `help`, `portfolio`, `crypto btc`, `stocks aapl`, `goto /…`
-- **Static SVG pie charts** — kein Chart-Framework nötig
-- Mock-Daten unter `src/data/`
+| Command | Beschreibung |
+| :------ | :----------- |
+| `portfolio` | NAV, PnL, Holdings-Tabelle, Allocation-Bars |
+| `portfolio ls` / `show BTC` | Positions-Liste / Einzelposition |
+| `portfolio alloc` | Nur Allocation |
+| `markets` | Snapshot + Top Movers |
+| `crypto ls` / `crypto show btc` | Crypto-Liste / Detail |
+| `stocks ls` / `stocks show aapl` | Aktien-Liste / Detail |
+| `help` / `man portfolio` | Hilfe |
+| `ls` | Verfügbare Programme |
+| `clear` | Screen leeren (`Ctrl+L`) |
+| `echo`, `whoami`, `date`, `uname` | System-Utils |
 
-## Stack
+## Bedienung
 
-- Astro 7 (SSG / zero-JS by default)
-- Monospace CLI theme (JetBrains Mono)
-- Vanilla JS nur für Suche + Command bar
-- Optional später: Svelte/React Islands für interaktive Charts
+- **Prompt** unten im Terminal (Focus: `/`)
+- **Tabs** oben starten Programme (ohne Full-Reload, wenn möglich)
+- **↑ / ↓** Command-History
+- Shareable URLs: `/`, `/markets`, `/crypto`, `/crypto/btc`, …
 
-## Structure
+## Architecture
 
 ```text
 src/
-├── components/   Terminal chrome, charts, tables, command bar
-├── data/         Portfolio, crypto, stocks, pie geometry, formatters
-├── layouts/      BaseLayout (term shell)
-├── pages/        portfolio, markets, crypto, stocks
-└── styles/       global.css (CLI theme)
+├── cli/
+│   ├── shell.ts           # Parser + Registry + bootSession
+│   ├── table.ts           # ASCII tables / bars
+│   ├── types.ts
+│   └── programs/          # portfolio, markets, crypto, stocks, system
+├── components/
+│   └── Terminal.astro     # Scrollback + Prompt (SSR boot + client shell)
+├── data/                  # Mock prices & holdings
+└── pages/                 # Routes boot with initialCommand
 ```
+
+Neue Programme: Meta in `src/cli/programs/`, in `shell.ts` registrieren.
 
 ## Commands
 
-| Command        | Action                         |
-| :------------- | :----------------------------- |
-| `yarn install` | Dependencies                   |
-| `yarn dev`     | Dev server (`localhost:4321`)  |
-| `yarn build`   | Static build → `./dist/`       |
-| `yarn preview` | Preview production build       |
-
-```sh
-# background dev (project convention)
-astro dev --background
-```
-
-## In-app CLI
-
-Focus with `/`, then e.g.:
-
-```text
-help
-portfolio
-markets
-crypto btc
-stocks aapl
-goto /markets
-ls
-```
+| Command        | Action                        |
+| :------------- | :---------------------------- |
+| `yarn install` | Dependencies                  |
+| `yarn dev`     | Dev server (`localhost:4321`) |
+| `yarn build`   | Static build → `./dist/`      |
+| `yarn preview` | Preview production build      |
 
 ## Next steps
 
-1. Broker/CSV import → Holdings füllen
-2. Build-time price refresh (CoinGecko, etc.)
-3. Performance-Chart Island (Sparkline / equity curve)
-4. Watchlist + `localStorage` Island
-5. Multi-portfolio / accounts
+1. Chart-Programm (`chart btc`) mit SVG-Island im Output
+2. CSV/Broker-Import als `portfolio import`
+3. Build-time price refresh
+4. Pipelines / flags (`crypto ls --sort 24h`)

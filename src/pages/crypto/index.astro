@@ -1,22 +1,12 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import AssetTable from "../../components/AssetTable.astro";
-import SearchFilter from "../../components/SearchFilter.astro";
-import { cryptoAssets } from "../../data/crypto";
+import Terminal from "../../components/Terminal.astro";
 ---
 
 <BaseLayout
-  title="Crypto"
+  title="crypto"
   windowTitle="prototerm — crypto"
-  description="Crypto-Markt im CLI-Style — Mock-Daten."
+  description="crypto program — list assets."
 >
-  <p class="cli-line">
-    <span class="dim">$</span> <span class="bright">crypto ls --sort mcap</span>
-  </p>
-  <p class="cli-line dim cli-block">
-    # {cryptoAssets.length} assets · mock prices · type: crypto btc
-  </p>
-
-  <SearchFilter targetId="crypto-table" placeholder="grep btc|ethereum…" />
-  <AssetTable assets={cryptoAssets} id="crypto-table" showRank />
+  <Terminal initialCommand="crypto ls" />
 </BaseLayout>
